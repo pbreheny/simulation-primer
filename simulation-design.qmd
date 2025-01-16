@@ -1,0 +1,95 @@
+---
+title: A Primer on Simulation Design
+author: Patrick Breheny
+date: today
+format:
+  html:
+    html-table-processing: none
+    self-contained: true
+    toc: true
+---
+
+```{r}
+#| include: false
+# html::knitr_setup()
+library(data.table)
+library(ggplot2)
+library(magrittr)
+theme_set(theme_minimal())
+```
+
+# Principles
+
+There are two important principles to keep in mind as you write simulation code:
+
+1. The results should be tidy and complete
+2. The code that implements the simulation should be simple, modular, and readable
+3. The code that runs the simulation should be separate from the code that presents the simulation
+
+We will now discuss these two principles in detail, then describe the general structure of a simulation study.
+
+## Tidy and complete
+
+Let's actually start at the end
+
+First
+
+## 
+tidy
+readable
+structure
+
+# Example #1
+
+```{r}
+#| include: false
+source('ex-1.r')
+```
+
+```{r}
+res[1:5,]
+```
+
+```{r}
+#| out_width: 100%
+res[, .(error = mean(p < 0.05)), .(s2, delta, n1)] %>%
+  .[delta == 0] %>%
+  ggplot(aes(n1, error)) +
+  geom_line() +
+  ylim(0, NA) +
+  facet_grid(~s2, labeller = 'label_both') +
+  xlab('Sample size (group 1)') +
+  ylab('Type 1 error') +
+  geom_hline(yintercept = 0.05, lty=2, col='gray70')
+```
+
+```{r}
+#| out_width: 100%
+res[, .(error = mean(p < 0.05)), .(s2, delta, n1)] %>%
+  .[delta == 1] %>%
+  ggplot(aes(n1, error)) +
+  geom_line() +
+  ylim(0, NA) +
+  facet_grid(~s2, labeller = 'label_both') +
+  xlab('Sample size (group 1)') +
+  ylab('Power')
+```
+
+# Example #2
+
+blocking
+
+# Additional remarks
+
+link to org talk
+
+```r
+if (!interactive()) {
+  args <- commandArgs(trailingOnly = TRUE)
+  cat("Running simulation with args:", print(args))
+} else {
+  args <- c('3', '50', '1', 'lasso')
+}
+```
+
+link to Morris2019 and SimDesign
