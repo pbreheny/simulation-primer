@@ -2,6 +2,8 @@
 title: A Primer on Simulation Design
 author: Patrick Breheny
 date: today
+html-math-method: katex
+code-annotations: hover
 format:
   html:
     html-table-processing: none
@@ -18,78 +20,171 @@ library(magrittr)
 theme_set(theme_minimal())
 ```
 
+This is an introduction to how to write and organize a simulation study. It is intended for students who have limited experience carrying out such studies before. However, it may also prove valuable to students who have carried out many simulation studies, but struggle to organize them well. The focus here is almost entirely on the organization. The *science* of designing a good simulation study is obviously also very important, but is a large topic; some links where you can read further about this are given at the end.
+
 # Principles
 
-There are two important principles to keep in mind as you write simulation code:
+There are three important principles to keep in mind as you write simulation code:
 
 1. The results should be tidy and complete
 2. The code that implements the simulation should be simple, modular, and readable
 3. The code that runs the simulation should be separate from the code that presents the simulation
 
-We will now discuss these two principles in detail, then describe the general structure of a simulation study.
+We will now discuss these principles in detail, then describe the general structure of a simulation study.
 
 ## Tidy and complete
 
-Let's actually start at the end
+As with many programming tasks, it helps to start at the end: what should the finished product look like?
 
-First
+There is a strong argument to be made that the results should be "tidy", meaning organized into a simple data frame of rows and columns. More complicated structures are certainly possible (lists, arrays, etc.); indeed, I used to store results in these formats. However, experience has taught me that a simple data frame is best, for three reasons. First, it is by far the most common way of storing data, so it will never be unfamiliar to you (unlike, say, a complex hierarchical list). Second, data frames are easy to merge and combine. Third, because they are so common, many powerful tools work well with data frames, such as the data manipulation packages **data.table** and **dplyr** and the graphics package **ggplot2**. You will likely want to get your simulation results into a data frame eventually anyway in order to summarize and plot them, so why not just store them like this in the first place?
 
-## 
-tidy
-readable
-structure
+Second, by "complete", I mean that you should try to the relevant information that went into the simulation as part of the object: things like sample sizes, standard deviation of error terms, things that would be passed as arguments to functions (see [structure](#structure) later). It's impractical to be truly complete (storing all the packages you loaded, their version numbers, the git hash of your codebase, etc.; it's not bad to store these things, but typically this is overkill), but in general, when in doubt, go ahead and store this information as columns in your data frame. Storage is cheap and you'll never regret having too much information about your simulation (especially if you're working in collaboration with someone else or coming back to a project in the future).
+
+## Simple, modular, and readable
+
+The script that runs the simulation should be short and readable. In particular, complicated details involved in implement a method or generating data should be implemented as functions and placed in separate files. It's much harder to read a simulation script and grasp the flow and big picture if it also contains hundreds of lines of code implementing details. Keep those details elsewhere.
+
+In particular, all of these details should be functions that can accept arguments -- this keeps your simulation *modular*, which is extremely important. You may not appreciate this if you haven't done research yet, but one typically has to try out dozens of simulation settings before finding the most interesting set up.
+
+## Separation
+
+Not only does one typically explore a number of settings, but the ways of summarizing and presenting a simulation are endless and typically involve a lot of tinkering, especially as you get ready to share or publish your results. It is essential that you separate the code that performs the simulation from the code that does the summarization and plotting. Simulations take a long time -- you don't want to rerun the simulation every time you change the colors or aspect ratio of a plot.
+
+# Structure
+
+All simulations studies have the same basic structure:
+
+1. **Generate** the data 
+2. **Analyze** that data
+3. **Summarize** how well the analysis worked
+
+In a complex simulation, these steps may be lengthy and complicated. However, by abstracting the details of these steps into functions and passing simulation options as arguments to these functions, we can keep the simulation structure organized, easy to read, and modular.
 
 # Example #1
 
+Let's go through an example. Here, I'll simulate two-group data with different sample sizes, different standard deviations, and potentially different means, then analyze the data using a two-sample $t$-test that assumes equal variances. In my simulation, I'll keep the total sample size at $n$=20, but change how many are in group 1 vs group 2.
+
+In this particular example, generating the data isn't too complicated. However, I'll write a function for the data generation so that you can see what it looks like to abstract these details away:
+
+```{r}
+#| echo: true
+#| eval: false
+#| file: functions.r
+```
+
 ```{r}
 #| include: false
-source('ex-1.r')
+if (file.exists('ex-1.csv')) {
+  res <- fread('ex-1.csv')
+} else {
+  source('ex-1.r')
+  res <- as.data.table(res)
+}
 ```
+
+Now, here's the code that carries out the simulation. I've made some comments on the code; hover over the little numbers to the right to see the annotations.
+
+```{r}
+#| echo: true
+#| eval: false
+#| file: ex-1.r
+```
+
+1. I strongly recommending adding a short statement at the top of all scripts that describes what the script does.
+2. Details of data generation, etc., go here.
+3. You can combine this step with the next one if you wish, but it is helpful for many reasons to separate the meaningful options -- arguments to the generate, analyze, and summarize function -- from the construction of the data frame to hold the results. Among other things, it lends itself well to use with HPC (see later).
+4. `expand.grid()` is extremely convenient here to set up factorial designs.
+5. Note that this must be done outside `expand.grid()` -- we don't want all combinations of n1 and n2.
+6. These are results; we don't know them ahead of time. Always store these as NA, not 0 or some other number -- in case something goes wrong, you don't want to include analyses that didn't happen as results.
+7. Progress bars are always useful. The base R one is fine, although the one from the **progress** package is a little nicer.
+8. This is the simulation loop. The template is more or less always the same -- generate, analyze, and summarize -- only the details and options change. Note that there are many potential summaries; I've included two, but a more intricate simulation might track dozens of performance metrics.
+9. CSV or TSV files are fine. Parquet files (see the **arrow** package) are even better. The **indexr** package can help with tracking the output.
+
+The structure of the results is very easy to understand:
 
 ```{r}
 res[1:5,]
 ```
 
+Using **data.table**/**dplyr** and **ggplot2**, it's also very easy to summarize and plot the data, even when complex things like subsetting and faceting need to happen:
+
 ```{r}
 #| out_width: 100%
-res[, .(error = mean(p < 0.05)), .(s2, delta, n1)] %>%
+#| fig.height: 4
+res[, .(error = mean(p < 0.05)), .(sd2, delta, n1)] %>%
   .[delta == 0] %>%
   ggplot(aes(n1, error)) +
   geom_line() +
   ylim(0, NA) +
-  facet_grid(~s2, labeller = 'label_both') +
+  facet_grid(~sd2, labeller = 'label_both') +
   xlab('Sample size (group 1)') +
   ylab('Type 1 error') +
   geom_hline(yintercept = 0.05, lty=2, col='gray70')
 ```
 
+# Example #2
+
+Example #1 illustrates most of the main ideas. However, most simulations involve a comparison between multiple methods. This introduces a new wrinkle that is worth discussing: the completing methods should analyze the same data. This doesn't necessarily matter in the long run, with enough replications, but it can matter quite a bit in smaller simulations and is worth paying attention to.
+
+Implementing this requires a few small changes to the code; these are annotated below:
+
+```{r}
+#| include: false
+if (file.exists('ex-2.csv')) {
+  res <- fread('ex-2.csv')
+} else {
+  source('ex-2.r')
+  res <- as.data.table(res)
+}
+```
+
+```{r}
+#| echo: true
+#| eval: false
+#| file: ex-2.r
+```
+
+1. The methods (and anything else you might be blocking on) need to come *before* the replication indicator.
+2. We need an `if` condition on the call to `generate()`: only generate new data once a new replication starts.
+3. Note that we have an analysis option now!
+
+Now we have two different methods and can compare them; let's look at Power ($\delta \ne 0$) this time:
+
 ```{r}
 #| out_width: 100%
-res[, .(error = mean(p < 0.05)), .(s2, delta, n1)] %>%
+res[, .(error = mean(p < 0.05)), .(sd2, delta, n1, equal_var)] %>%
   .[delta == 1] %>%
-  ggplot(aes(n1, error)) +
+  ggplot(aes(n1, error, group=equal_var, color=equal_var)) +
   geom_line() +
   ylim(0, NA) +
-  facet_grid(~s2, labeller = 'label_both') +
+  facet_grid(~sd2, labeller = 'label_both') +
   xlab('Sample size (group 1)') +
   ylab('Power')
 ```
 
-# Example #2
-
-blocking
-
 # Additional remarks
 
-link to org talk
+Certainly, there are some interesting statistical results here, but I'll let you ponder them on your own -- the point of this document is to illustrate how to organize a simulation study, and hopefully I have accomplished that or at least gotten you started down the road to better organization. There is certainly more that can be said, but I think these are the main principles to keep in mind.
+
+* For a more complicated project (like dissertation research!), you will likely want to set up a project; see [here](https://github.com/IowaBiostat/project-workflow) for more details on how you might set something like that up.
+* The above structure allows for specifying options from the command line; in this case, you might modify the block that species the options as follows:
 
 ```r
 if (!interactive()) {
-  args <- commandArgs(trailingOnly = TRUE)
-  cat("Running simulation with args:", print(args))
+  opt <- commandArgs(trailingOnly = TRUE)
+  cat("Running simulation with args:", print(opt))
 } else {
-  args <- c('3', '50', '1', 'lasso')
+  opt <- list(
+    equal_var = c(TRUE, FALSE),
+    rep = 1:1000,
+    sd1 = 1,
+    sd2 = 1:3,
+    n1 = seq(2, 18, 2),
+    delta = c(0, 1))
 }
 ```
 
-link to Morris2019 and SimDesign
+* If you're interested in reading more on simulation design, I suggest the following articles:
+  * [Morris2019](https://doi.org/10.1002/sim.8086)
+  * [Strobl2024](https://doi.org/10.1002/bimj.202200104)
+  * [Chalmers2020](https://doi.org/10.20982/tqmp.16.4.p248)
