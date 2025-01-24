@@ -22,13 +22,15 @@ theme_set(theme_minimal())
 
 This is an introduction to how to write and organize a simulation study. It is intended for students who have limited experience carrying out such studies before. However, it may also prove valuable to students who have carried out many simulation studies, but struggle to organize them well. The focus here is almost entirely on the organization. The *science* of designing a good simulation study is obviously also very important, but is a large topic; some links where you can read further about this are given at the end.
 
+To download the source code so that you can run (and modify) this simulation yourself, visit the [GitHub repsoitory](https://github.com/pbreheny/simulation-primer).
+
 # Principles
 
 There are three important principles to keep in mind as you write simulation code:
 
 1. The results should be tidy and complete
 2. The code that implements the simulation should be simple, modular, and readable
-3. The code that runs the simulation should be separate from the code that presents the simulation
+3. The code that runs the simulation should be separate from the code that presents the simulation results
 
 We will now discuss these principles in detail, then describe the general structure of a simulation study.
 
@@ -36,9 +38,14 @@ We will now discuss these principles in detail, then describe the general struct
 
 As with many programming tasks, it helps to start at the end: what should the finished product look like?
 
-There is a strong argument to be made that the results should be "tidy", meaning organized into a simple data frame of rows and columns. More complicated structures are certainly possible (lists, arrays, etc.); indeed, I used to store results in these formats. However, experience has taught me that a simple data frame is best, for three reasons. First, it is by far the most common way of storing data, so it will never be unfamiliar to you (unlike, say, a complex hierarchical list). Second, data frames are easy to merge and combine. Third, because they are so common, many powerful tools work well with data frames, such as the data manipulation packages **data.table** and **dplyr** and the graphics package **ggplot2**. You will likely want to get your simulation results into a data frame eventually anyway in order to summarize and plot them, so why not just store them like this in the first place?
+There is a strong argument to be made that the results should be "tidy", meaning organized into a simple data frame of rows and columns. More complicated structures are certainly possible (lists, arrays, etc.); indeed, I used to store results in these formats. However, experience has taught me that a simple data frame is best, for several reasons:
 
-Second, by "complete", I mean that you should try to the relevant information that went into the simulation as part of the object: things like sample sizes, standard deviation of error terms, things that would be passed as arguments to functions (see [structure](#structure) later). It's impractical to be truly complete (storing all the packages you loaded, their version numbers, the git hash of your codebase, etc.; it's not bad to store these things, but typically this is overkill), but in general, when in doubt, go ahead and store this information as columns in your data frame. Storage is cheap and you'll never regret having too much information about your simulation (especially if you're working in collaboration with someone else or coming back to a project in the future).
+1. It is by far the most common way of storing data, so it will never be unfamiliar to you (unlike, say, a complex hierarchical list).
+2. Data frames are easy to merge and combine.
+3. Committing to a hierarchical structure makes it hard to modify the simulation; if you change the parameters, will the entire structure change? This is not desirable.
+4. Because they are so common, many powerful tools work well with data frames, such as the data manipulation packages **data.table** and **dplyr** and the graphics package **ggplot2**. You will likely want to get your simulation results into a data frame eventually anyway in order to summarize and plot them, so why not just store them like this in the first place?
+
+Second, by "complete", I mean that you should try to record the relevant information that went into the simulation as part of the object: things like sample sizes, standard deviation of error terms, things that would be passed as arguments to functions (see [structure](#structure) later). It's impractical to be truly complete (storing all the packages you loaded, their version numbers, the git hash of your codebase, etc.; it's not bad to store these things, but typically this is overkill), but in general, when in doubt, go ahead and store this information as columns in your data frame. Storage is cheap and you'll never regret having too much information about your simulation (especially if you're working in collaboration with someone else or coming back to a project in the future).
 
 ## Simple, modular, and readable
 
@@ -124,7 +131,7 @@ res[, .(error = mean(p < 0.05)), .(sd2, delta, n1)] %>%
 
 # Example #2
 
-Example #1 illustrates most of the main ideas. However, most simulations involve a comparison between multiple methods. This introduces a new wrinkle that is worth discussing: the completing methods should analyze the same data. This doesn't necessarily matter in the long run, with enough replications, but it can matter quite a bit in smaller simulations and is worth paying attention to.
+Example #1 illustrates most of the main ideas. However, most simulations involve a comparison between multiple methods. This introduces a new wrinkle that is worth discussing: the competing methods should analyze the same data. This doesn't necessarily matter in the long run -- with enough replications, differences between random samples will go away -- but it can matter quite a bit in smaller simulations and is worth paying attention to.
 
 Implementing this requires a few small changes to the code; these are annotated below:
 
@@ -184,6 +191,7 @@ if (!interactive()) {
 }
 ```
 
+* Another approach to ensuring that competing methods are being compared using the same data is to pass the replication number to `generate()` and use it as a seed. An important advantage of this approach is that you can add a method later and don't have to rerun the entire simulation. A disadvantage is that if data generation is time-consuming, you don't want to repeat the data-generating process if it isn't necessary.
 * If you're interested in reading more on simulation design, I suggest the following articles:
   * [Morris2019](https://doi.org/10.1002/sim.8086)
   * [Strobl2024](https://doi.org/10.1002/bimj.202200104)

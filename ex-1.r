@@ -14,8 +14,8 @@ opt <- list(                                                          # <3>
 # Set up results frame                                                
 res <- expand.grid(opt)                                               # <4> 
 res$n2 <- 20 - res$n1                                                 # <5>
-res$p = NA_real_                                                      # <6> 
-res$width = NA_real_                                                  # <6> 
+res$p <- NA_real_                                                     # <6> 
+res$width <- NA_real_                                                 # <6> 
 
 # Loop
 pb <- txtProgressBar(0, nrow(res), style=3)                           # <7> 
