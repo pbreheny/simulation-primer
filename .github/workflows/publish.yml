@@ -23,7 +23,7 @@ jobs:
           r-version: 'release'
 
       - name: Install dependencies
-        run: Rscript -e "install.packages(c('ggplot2', 'knitr', 'data.table', 'magrittr', 'rmarkdown'), repos='https://cloud.r-project.org')"
+        run: Rscript -e "install.packages('rmarkdown', repos='https://cloud.r-project.org')"
 
       - name: Render and Publish
         uses: quarto-dev/quarto-actions/publish@v2
