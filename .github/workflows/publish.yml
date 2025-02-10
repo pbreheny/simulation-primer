@@ -22,8 +22,12 @@ jobs:
         with:
           r-version: 'release'
 
-      - name: Install dependencies
-        run: Rscript -e "install.packages('rmarkdown', repos='https://cloud.r-project.org')"
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: |
+            cran::data.table
+            cran::magrittr
+            cran::rmarkdown
 
       - name: Render and Publish
         uses: quarto-dev/quarto-actions/publish@v2
