@@ -22,15 +22,8 @@ jobs:
         with:
           r-version: 'release'
 
-      - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          dependencies: "hard"
-          extra-packages: |
-            cran::ggplot2
-            cran::knitr
-            cran::data.table
-            cran::magrittr
-            cran::rmarkdown
+      - name: Install dependencies
+        run: Rscript -e "install.packages(c('ggplot2', 'knitr', 'data.table', 'magrittr', 'rmarkdown'), repos='https://cloud.r-project.org')"
 
       - name: Render and Publish
         uses: quarto-dev/quarto-actions/publish@v2
