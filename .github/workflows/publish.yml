@@ -28,6 +28,7 @@ jobs:
             cran::data.table
             cran::magrittr
             cran::rmarkdown
+            local::.
 
       - name: Render and Publish
         uses: quarto-dev/quarto-actions/publish@v2
