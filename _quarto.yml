@@ -1,0 +1,6 @@
+project:
+  render:
+    - simulation-design.qmd
+
+execute:
+  freeze: auto
