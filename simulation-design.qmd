@@ -174,7 +174,7 @@ res[, .(error = mean(p < 0.05)), .(sd2, delta, n1, equal_var)] %>%
 Certainly, there are some interesting statistical results here, but I'll let you ponder them on your own -- the point of this document is to illustrate how to organize a simulation study, and hopefully I have accomplished that or at least gotten you started down the road to better organization. There is certainly more that can be said, but I think these are the main principles to keep in mind.
 
 * For a more complicated project (like dissertation research!), you will likely want to set up a project; see [here](https://github.com/IowaBiostat/project-workflow) for more details on how you might set something like that up.
-* The above structure allows for specifying options from the command line; in this case, you might modify the block that species the options as follows:
+* The above structure allows for specifying options from the command line; in this case, you might modify the block that specifies the options as follows:
 
 ```r
 if (!interactive()) {
