@@ -19,7 +19,7 @@ library(magrittr)
 theme_set(theme_minimal())
 ```
 
-This is an introduction to how to write and organize a simulation study. It is intended for students who have limited experience carrying out such studies before. However, it may also prove valuable to students who have carried out many simulation studies, but struggle to organize them well. The focus here is almost entirely on the organization. The *science* of designing a good simulation study is obviously also very important, but is a large topic; some links where you can read further about this are given at the end.
+This is an introduction to how to write and organize a simulation study. It is intended for students who have limited experience carrying out such studies before. However, it may also prove valuable to students who have carried out many simulation studies, but struggle to organize them well. The focus here is almost entirely on the organization. The _science_ of designing a good simulation study is obviously also very important, but is a large topic; some links where you can read further about this are given at the end.
 
 To download the source code so that you can run (and modify) this simulation yourself, visit the [GitHub repsoitory](https://github.com/pbreheny/simulation-primer).
 
@@ -50,7 +50,7 @@ Second, by "complete", I mean that you should try to record the relevant informa
 
 The script that runs the simulation should be short and readable. In particular, complicated details involved in implement a method or generating data should be implemented as functions and placed in separate files. It's much harder to read a simulation script and grasp the flow and big picture if it also contains hundreds of lines of code implementing details. Keep those details elsewhere.
 
-In particular, all of these details should be functions that can accept arguments -- this keeps your simulation *modular*, which is extremely important. You may not appreciate this if you haven't done research yet, but one typically has to try out dozens of simulation settings before finding the most interesting set up.
+In particular, all of these details should be functions that can accept arguments -- this keeps your simulation _modular_, which is extremely important. You may not appreciate this if you haven't done research yet, but one typically has to try out dozens of simulation settings before finding the most interesting set up.
 
 ## Separation
 
@@ -60,7 +60,7 @@ Not only does one typically explore a number of settings, but the ways of summar
 
 All simulations studies have the same basic structure:
 
-1. **Generate** the data 
+1. **Generate** the data
 2. **Analyze** that data
 3. **Summarize** how well the analysis worked
 
@@ -150,7 +150,7 @@ if (file.exists('ex-2.csv')) {
 #| file: ex-2.r
 ```
 
-1. The methods (and anything else you might be blocking on) need to come *before* the replication indicator.
+1. The methods (and anything else you might be blocking on) need to come _before_ the replication indicator.
 2. We need an `if` condition on the call to `generate()`: only generate new data once a new replication starts.
 3. Note that we have an analysis option now!
 
@@ -173,8 +173,8 @@ res[, .(error = mean(p < 0.05)), .(sd2, delta, n1, equal_var)] %>%
 
 Certainly, there are some interesting statistical results here, but I'll let you ponder them on your own -- the point of this document is to illustrate how to organize a simulation study, and hopefully I have accomplished that or at least gotten you started down the road to better organization. There is certainly more that can be said, but I think these are the main principles to keep in mind.
 
-* For a more complicated project (like dissertation research!), you will likely want to set up a project; see [here](https://github.com/IowaBiostat/project-workflow) for more details on how you might set something like that up.
-* The above structure allows for specifying options from the command line; in this case, you might modify the block that species the options as follows:
+- For a more complicated project (like dissertation research!), you will likely want to set up a project; see [here](https://github.com/IowaBiostat/project-workflow) for more details on how you might set something like that up.
+- The above structure allows for specifying options from the command line; in this case, you might modify the block that specifies the options as follows:
 
 ```r
 if (!interactive()) {
@@ -191,8 +191,8 @@ if (!interactive()) {
 }
 ```
 
-* Another approach to ensuring that competing methods are being compared using the same data is to pass the replication number to `generate()` and use it as a seed. An important advantage of this approach is that you can add a method later and don't have to rerun the entire simulation. A disadvantage is that if data generation is time-consuming, you don't want to repeat the data-generating process if it isn't necessary.
-* If you're interested in reading more on simulation design, I suggest the following articles:
-  * [Morris2019](https://doi.org/10.1002/sim.8086)
-  * [Strobl2024](https://doi.org/10.1002/bimj.202200104)
-  * [Chalmers2020](https://doi.org/10.20982/tqmp.16.4.p248)
+- Another approach to ensuring that competing methods are being compared using the same data is to pass the replication number to `generate()` and use it as a seed. An important advantage of this approach is that you can add a method later and don't have to rerun the entire simulation. A disadvantage is that if data generation is time-consuming, you don't want to repeat the data-generating process if it isn't necessary.
+- If you're interested in reading more on simulation design, I suggest the following articles:
+  - [Morris2019](https://doi.org/10.1002/sim.8086)
+  - [Strobl2024](https://doi.org/10.1002/bimj.202200104)
+  - [Chalmers2020](https://doi.org/10.20982/tqmp.16.4.p248)
